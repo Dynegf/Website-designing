@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CA Foundation Law Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #74ebd5, #ACB6E5);
+      text-align: center;
+      padding: 30px;
+    }
+    h1 { color: #333; }
+    #quiz-container {
+      max-width: 650px;
+      margin: auto;
+      background: white;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    .question { font-size: 20px; margin-bottom: 15px; }
+    .option {
+      background: #f0f0f0;
+      padding: 10px;
+      margin: 8px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .option:hover { background: #d0e6f7; transform: scale(1.05); }
+    .correct { background: #a8e6cf !important; }
+    .wrong { background: #ff8b94 !important; }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      border: none;
+      background: #6a82fb;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    #next-btn, #review-btn, #leaderboard-btn { display: none; }
+    #result, #review-section, #leaderboard-section {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 20px;
+      display: none;
+      text-align: left;
+    }
+    .review-item {
+      background: #f9f9f9;
+      margin: 10px;
+      padding: 10px;
+      border-radius: 10px;
+    }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { padding: 10px; border: 1px solid #ddd; }
+    th { background: #6a82fb; color: white; }
+  </style>
+</head>
+<body>
+  <h1>CA Foundation Law Quiz</h1>
+
+  <div id="quiz-container">
+    <!-- Student Name Input -->
+    <div id="start-section">
+      <p><b>Enter Your Name:</b></p>
+      <input type="text" id="student-name" placeholder="Your Name">
+      <br><br>
+      <button id="start-btn">Start Quiz</button>
+    </div>
+
+    <!-- Quiz Questions -->
+    <div id="quiz-section" style="display:none;">
+      <div id="question-box"></div>
+      <div id="options"></div>
+      <button id="next-btn">Next Question</button>
+    </div>
+
+    <!-- Result -->
+    <div id="result"></div>
+    <button id="review-btn">Review Answers</button>
+    <button id="leaderboard-btn">View Leaderboard</button>
+
+    <!-- Review Section -->
+    <div id="review-section"></div>
+
+    <!-- Leaderboard Section -->
+    <div id="leaderboard-section"></div>
+  </div>
+
+  <script>
+    const questions = [
+      { question: "Indian Contract Act was enacted in which year?", options: ["1857", "1872", "1956", "2000"], answer: "1872" },
+      { question: "How many parties are required in a valid contract?", options: ["1", "2", "3", "Unlimited"], answer: "2" },
+      { question: "Which section of the Contract Act defines Contract?", options: ["Sec 1", "Sec 2(h)", "Sec 5", "Sec 10"], answer: "Sec 2(h)" },
+      { question: "Who is a minor under Indian Contract Act?", options: ["Below 14 years", "Below 16 years", "Below 18 years", "Below 21 years"], answer: "Below 18 years" }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let studentName = "";
+    let responses = [];
+
+    const startBtn = document.getElementById("start-btn");
+    const studentNameInput = document.getElementById("student-name");
+    const startSection = document.getElementById("start-section");
+    const quizSection = document.getElementById("quiz-section");
+    const questionBox = document.getElementById("question-box");
+    const optionsBox = document.getElementById("options");
+    const nextBtn = document.getElementById("next-btn");
+    const resultBox = document.getElementById("result");
+    const reviewBtn = document.getElementById("review-btn");
+    const reviewSection = document.getElementById("review-section");
+    const leaderboardBtn = document.getElementById("leaderboard-btn");
+    const leaderboardSection = document.getElementById("leaderboard-section");
+
+    startBtn.onclick = () => {
+      studentName = studentNameInput.value.trim();
+      if (!studentName) {
+        alert("Please enter your name!");
+        return;
+      }
+      startSection.style.display = "none";
+      quizSection.style.display = "block";
+      loadQuestion();
+    };
+
+    function loadQuestion() {
+      let q = questions[currentQuestion];
+      questionBox.innerHTML = `<div class="question">${q.question}</div>`;
+      optionsBox.innerHTML = "";
+      q.options.forEach(option => {
+        let btn = document.createElement("div");
+        btn.classList.add("option");
+        btn.innerText = option;
+        btn.onclick = () => checkAnswer(btn, q.answer);
+        optionsBox.appendChild(btn);
+      });
+      nextBtn.style.display = "none"; // reset
+    }
+
+    function checkAnswer(selected, correctAnswer) {
+      let options = document.querySelectorAll(".option");
+      options.forEach(btn => {
+        btn.style.pointerEvents = "none";
+        if (btn.innerText === correctAnswer) {
+          btn.classList.add("correct");
+        }
+      });
+
+      responses.push({
+        question: questions[currentQuestion].question,
+        selected: selected.innerText,
+        correct: correctAnswer
+      });
+
+      if (selected.innerText === correctAnswer) {
+        score++;
+      } else {
+        selected.classList.add("wrong");
+      }
+      nextBtn.style.display = "inline-block";
+    }
+
+    nextBtn.onclick = () => {
+      currentQuestion++;
+      if (currentQuestion < questions.length) {
+        loadQuestion();
+      } else {
+        showResult();
+      }
+    };
+
+    function showResult() {
+      quizSection.style.display = "none";
+      resultBox.style.display = "block";
+      reviewBtn.style.display = "inline-block";
+      leaderboardBtn.style.display = "inline-block";
+
+      resultBox.innerHTML = `🎉 ${studentName}, You scored ${score} out of ${questions.length}`;
+
+      // Save in localStorage for leaderboard
+      let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+      leaderboard.push({ name: studentName, score: score });
+      localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+    }
+
+    reviewBtn.onclick = () => {
+      reviewSection.style.display = "block";
+      reviewSection.innerHTML = "<h3>📘 Review Your Answers:</h3>";
+      responses.forEach((res, index) => {
+        let div = document.createElement("div");
+        div.classList.add("review-item");
+        div.innerHTML = `<b>Q${index + 1}:</b> ${res.question} <br>
+                         Your Answer: ${res.selected} <br>
+                         Correct Answer: ${res.correct}`;
+        reviewSection.appendChild(div);
+      });
+    };
+
+    leaderboardBtn.onclick = () => {
+      leaderboardSection.style.display = "block";
+      leaderboardSection.innerHTML = "<h3>🏆 Leaderboard</h3>";
+      let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+      leaderboard.sort((a, b) => b.score - a.score);
+
+      let table = "<table><tr><th>Rank</th><th>Name</th><th>Score</th></tr>";
+      leaderboard.forEach((entry, i) => {
+        table += `<tr><td>${i + 1}</td><td>${entry.name}</td><td>${entry.score}</td></tr>`;
+      });
+      table += "</table>";
+      leaderboardSection.innerHTML += table;
+    };
+  </script>
+</body>
+</html>
